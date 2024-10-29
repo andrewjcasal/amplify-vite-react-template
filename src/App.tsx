@@ -23,6 +23,16 @@ function App() {
     client.models.Todo.delete({id});
   } 
 
+  useEffect(() => {
+    if (user) {
+      client.queries.formatUser({
+        email: user.signInDetails?.loginId,
+        userId: user.userId,
+      }, {authMode: 'userPool'})
+        .then( response => console.log(response));
+    }
+  }, [user]);
+
   return (
     <main>
       <h1>{user?.signInDetails?.loginId}'s todos</h1>
