@@ -1,5 +1,6 @@
 import { type ClientSchema, a, defineData } from "@aws-amplify/backend";
 import { formatUser } from "../function/format-user/resource";
+import { getUserTodos } from "../function/get-user-todos/resource";
 
 /*== STEP 1 ===============================================================
 The section below creates a Todo database table with a "content" field. Try
@@ -11,7 +12,11 @@ const schema = a.schema({
   Todo: a
     .model({
       content: a.string(),
-    }).authorization(allow => [allow.owner()]),
+      owner: a.string(),
+    }).authorization(allow => [
+      allow.publicApiKey().to(['read']),
+      allow.owner(),
+    ]),
   formatUser: a
     .query()
     .arguments({
@@ -21,6 +26,14 @@ const schema = a.schema({
     .returns(a.json())
     .handler(a.handler.function(formatUser))
     .authorization(allow => [allow.authenticated()]),
+  getUserTodos: a
+    .query()
+    .arguments({
+      userId: a.string(),
+    })
+    .returns(a.json())
+    .handler(a.handler.function(getUserTodos))
+    .authorization(allow => [allow.publicApiKey()]),
 });
 
 export type Schema = ClientSchema<typeof schema>;
@@ -28,7 +41,7 @@ export type Schema = ClientSchema<typeof schema>;
 export const data = defineData({
   schema,
   authorizationModes: {
-    defaultAuthorizationMode: "userPool",
+    defaultAuthorizationMode: "apiKey",
     // API Key is used for a.allow.public() rules
     apiKeyAuthorizationMode: {
       expiresInDays: 30,

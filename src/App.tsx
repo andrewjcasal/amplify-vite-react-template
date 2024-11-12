@@ -10,7 +10,9 @@ function App() {
   const [todos, setTodos] = useState<Array<Schema["Todo"]["type"]>>([]);
 
   useEffect(() => {
-    client.models.Todo.observeQuery().subscribe({
+    client.models.Todo.observeQuery({
+      authMode: 'userPool',
+    }).subscribe({
       next: (data) => setTodos([...data.items]),
     });
   }, []);
@@ -22,6 +24,15 @@ function App() {
   function deleteTodo(id: string) {
     client.models.Todo.delete({id});
   } 
+  
+  useEffect(() => {
+    const fetchData = async () => {
+      const resp = await client.queries.getUserTodos({userId: `${user.userId}::${user.userId}` })
+      console.log('resp', JSON.parse(resp.data).body);
+    } 
+    
+    fetchData();
+  }, [])
 
   useEffect(() => {
     if (user) {
